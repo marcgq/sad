@@ -1,7 +1,6 @@
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 
 /*
@@ -15,141 +14,107 @@ import java.io.Reader;
  * @author marc
  */
 
-
 public class EditableBufferedReader extends BufferedReader {
-    static final int BACK = 256, FORW = 257, ERASE=258, SUPR=259, HOME=260, END=270, INS=271;
+    public static final int BACK = 256, FORW = 257, ERASE = 258, SUPR = 259, HOME = 260, END = 270, INS = 271;
 
-    
     public EditableBufferedReader(Reader in) throws IOException {
         super(in);
-        
+
     }
-    
+
     public void setRaw() throws IOException {
-        Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", "stty raw -echo </dev/tty"});
-    } 
-    
-    public void unsetRaw() throws IOException{
-        Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", "stty -raw echo </dev/tty"});
+        Runtime.getRuntime().exec(new String[] { "/bin/sh", "-c", "stty raw -echo </dev/tty" });
     }
-    
+
+    public void unsetRaw() throws IOException {
+        Runtime.getRuntime().exec(new String[] { "/bin/sh", "-c", "stty -raw echo </dev/tty" });
+    }
+
     @Override
-    public int read() throws IOException{
+    public int read() throws IOException {
         int key = super.read();
-        if (key!=27 && key!=8) {
-            return key;
-        } else if (key==8){ //Backspace
+        if (key != 27 && key != 8) {
             System.out.print("\033[2K"); // Erase all line in display
-            System.out.print("\033[1G"); //Cursor at 1st column
+            System.out.print("\033[1G"); // Cursor at 1st column
+            return key;
+        } else if (key == 8) { // Backspace
+            System.out.print("\033[2K"); // Erase all line in display
+            System.out.print("\033[1G"); // Cursor at 1st column
             return ERASE;
         } else {
-            int key2 = super.read();
-            int key3 = super.read();
-           
-            switch(key3){
-                case 'C': //Right arrow
-                    System.out.print("\033[1C"); //Cursor forward
-                    return(FORW);
-                   
-                case 'D': //Left arrow
-                    System.out.print("\033[1D"); //Cursor backward
-                    return(BACK);
-                case '1': // Home   
+            super.read();
+            int key2= super.read();
+
+            switch (key2) {
+                case 'C': // Right arrow
+                    System.out.print("\033[1C"); // Cursor forward
+                    return (FORW);
+
+                case 'D': // Left arrow
+                    System.out.print("\033[1D"); // Cursor backward
+                    return (BACK);
+                case '1': // Home
                     super.read();
-                    return(HOME);
-                case '3':   //Delete
+                    return (HOME);
+                case '3': // Delete
                     System.out.print("\033[2K"); // Erase all line in display
-                    System.out.print("\033[1G"); //Cursor at 1st column
+                    System.out.print("\033[1G"); // Cursor at 1st column
                     super.read();
-                    return(SUPR);
+                    return (SUPR);
                 case '2':
                     super.read();
-                    return(INS);    
-                case '4': //End
+                    return (INS);
+                case '4': // End
                     super.read();
-                    return(END);
+                    return (END);
                 default:
                     return 0;
             }
-            
+
         }
     }
-    
+
     @Override
-    public String readLine() throws IOException{
-        int index = 0;
-        boolean insert = true;
-        String str = "", cola="";
+    public String readLine() throws IOException {
+        Line line = new Line();
+        boolean insertMode = true;
         int key = 0;
-        while(key!=13){
+        while (key != 13) {
             setRaw();
             key = read();
-            
-            switch(key){
+
+            switch (key) {
                 case BACK:
-                    if(index > 0)  index -= 1;
-                    break;
                 case FORW:
-                    if(index<str.length())  index += 1;
-                    System.out.print("\033["+(index+1)+"G");
-                    break;
                 case HOME:
-                    index=0;
-                    System.out.print("\033["+(index+1)+"G");
-                    break;
                 case END:
-                    index=str.length();
-                    System.out.print("\033["+(index+1)+"G");
+                    line.modifyIndex(key);
+                    System.out.print("\033[" + (line.getIndex() + 1) + "G");
                     break;
                 case INS:
-                    insert = !insert;
+                    insertMode = !insertMode;
                     break;
-                case 13: //Carriage return
+                case 13: // Carriage return
+                    System.out.print(line);
                     break;
                 case ERASE:
-                    if(index==0) break;
-                    cola = str.substring(index);
-                    str = str.substring(0, index-1) + cola;
-                    System.out.print(str);
-                    System.out.print("\033["+(index)+"G"); //Cursor placement
-                    index-=1;
+                    line.delete(key);
+                    System.out.print(line);
+                    System.out.print("\033[" + (line.getIndex()) + "G"); // Cursor placement
                     break;
                 case SUPR:
-                    if(index==str.length()) {
-                        System.out.print(str);
-                        System.out.print("\033["+(index+1)+"G");
-                        break;
-                    }
-                    cola = str.substring(index+1);
-                    str = str.substring(0, index) + cola;
-                    System.out.print(str);
-                    System.out.print("\033["+(index+1)+"G"); //Cursor placement
-                    
+                    line.delete(key);
+                    System.out.print(line);
+                    System.out.print("\033[" + (line.getIndex() + 1) + "G"); // Cursor placement
                     break;
                 default:
-                if (insert){
-                    cola = str.substring(index);
-                    str = str.substring(0, index) + (char)key + cola;
-                    index+=1;
-                    System.out.print((char) key+cola);
-                    System.out.print("\033["+(index+1)+"G"); //Cursor placement
-                } else {
-                    if(index==str.length()) {
-                        str = str + (char)key;
-                        System.out.print((char)key);
-                        index+=1;
-                        break;
-                    }
-                    cola = str.substring(index+1);
-                    str = str.substring(0, index) + (char)key + cola;
-                    index+=1;
-                    System.out.print((char) key+cola);
-                    System.out.print("\033["+(index+1)+"G"); //Cursor placement
-                }
-                      
-            } 
+                    line.insert((char) key, insertMode);
+                    System.out.print(line);
+                    System.out.print("\033[" + (line.getIndex() + 1) + "G"); // Cursor placement
+            }
+
         }
         unsetRaw();
-        return str;
+        return line.getString();
     }
 }
