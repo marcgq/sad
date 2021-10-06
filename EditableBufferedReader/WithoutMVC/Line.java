@@ -1,8 +1,7 @@
 public class Line {
     int index;
     String str;
-    public static final int BACK = 256, FORW = 257, ERASE = 258, SUPR = 259, HOME = 260, END = 270, INS = 271;
-
+    
     public Line() {
         index = 0;
         str = "";
@@ -27,33 +26,39 @@ public class Line {
     }
 
     public void delete(int key) {
-        if (key == ERASE && index > 0) {
+        if (key == Key.ERASE && index > 0) {
             String cola = str.substring(index);
             str = str.substring(0, index - 1) + cola;
             index -= 1;
-        } else if (key == SUPR && index < str.length()) {
+        } else if (key == Key.SUPR && index < str.length()) {
             String cola = str.substring(index + 1);
             str = str.substring(0, index) + cola;
+        } else {
+            System.out.print("\007");
         }
 
     }
 
     public void modifyIndex(int key) {
         switch (key) {
-            case BACK:
-                if (index > 0)
+            case Key.BACK:
+                if (index > 0) {
                     index -= 1;
+                }  else {
+                    System.out.print("\007");
+                }
                 break;
-            case FORW:
-                if (index < str.length())
+            case Key.FORW:
+                if (index < str.length()) {
                     index += 1;
-
+                } else {
+                    System.out.print("\007");
+                }
                 break;
-            case HOME:
+            case Key.HOME:
                 index = 0;
-
                 break;
-            case END:
+            case Key.END:
                 index = str.length();
         }
     }
