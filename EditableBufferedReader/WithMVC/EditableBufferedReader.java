@@ -31,17 +31,11 @@ public class EditableBufferedReader extends BufferedReader {
                 case 'D': // Left arrow
                     return (Key.BACK);
                 case '1': // Home
-                    super.read(); //Flush wave hyphen
-                    return (Key.HOME);
-                case '2':
-                    super.read(); //Flush wave hyphen
-                    return (Key.INS);
+                case '2': // Insert
                 case '3': // Delete
-                    super.read(); //Flush wave hyphen
-                    return (Key.SUPR);
                 case '4': // End
                     super.read(); //Flush wave hyphen
-                    return (Key.END);
+                    return (Key.HOME + key - '1');
                 default:
                     return (Key.BELL);
             }
@@ -53,32 +47,41 @@ public class EditableBufferedReader extends BufferedReader {
         Line line = new Line();
         console = new Console();
         line.addObserver(console);
-        boolean insertMode = true;
         int key = 0;
+        setRaw();
         while (key != Key.CR) {
-            setRaw();
             switch (key = read()) {
                 case Key.BACK:
+                    line.decrementIndex();
+                    break;
                 case Key.FORW:
+                    line.incrementIndex();
+                    break;
                 case Key.HOME:
+                    line.homeIndex();
+                    System.out.print("\033[1G");
+                    break;
                 case Key.END:
-                    line.modifyIndex(key);
+                    line.endIndex();
+                    System.out.print("\033[" + (line.getIndex() + 1) + "G");
                     break;
                 case Key.INS:
-                    insertMode = !insertMode;
+                    line.insertMode = !line.insertMode;
                     break;
                 case Key.ERASE:
+                    line.delete();
+                    break;
                 case Key.SUPR:
-                    line.delete(key);
+                    line.supress();
                     break;
                 case Key.BELL:
                 case Key.CR: // Carriage return
                     break;
                 default:
-                    line.insert((char) key, insertMode);
+                    line.insert((char) key, line.insertMode);
             }
         }
         unsetRaw();
-        return line.getString();
+        return line.toString();
     }
 }
