@@ -3,11 +3,13 @@ import java.util.Observable;
 public class Line extends Observable {
     int index;
     String str;
-    
+    boolean insertMode;
+
     public Line() {
         super();
         index = 0;
         str = "";
+        insertMode = true;
     }
 
     public void insert(char car, Boolean insert) {
@@ -15,7 +17,7 @@ public class Line extends Observable {
             String cola = str.substring(index);
             str = str.substring(0, index) + car + cola;
             index += 1;
-
+            
         } else {
             if (index == str.length()) {
                 str = str + car;
@@ -30,64 +32,66 @@ public class Line extends Observable {
         notifyObservers();
     }
 
-    public void delete(int key) {
-        if (key == Key.ERASE && index > 0) {
-            String cola = str.substring(index);
-            str = str.substring(0, index - 1) + cola;
-            index -= 1;
+    public void incrementIndex(){
+        if (index < str.length()) {
+            index += 1;
             setChanged();
-            notifyObservers();
-        } else if (key == Key.SUPR && index < str.length()) {
-            String cola = str.substring(index + 1);
-            str = str.substring(0, index) + cola;
-            setChanged();
-            notifyObservers();
+            notifyObservers(Key.FORW);
+            
         } else {
             setChanged();
             notifyObservers(Key.BELL);
         }
-
     }
 
-    public void modifyIndex(int key) {
-        switch (key) {
-            case Key.BACK:
-                if (index > 0) {
-                    index -= 1;
-                    setChanged();
-                    notifyObservers();
-                }  else {
-                    setChanged();
-                    notifyObservers(Key.BELL);
-                }
-                break;
-            case Key.FORW:
-                if (index < str.length()) {
-                    index += 1;
-                    setChanged();
-                    notifyObservers();
-                } else {
-                    setChanged();
-                    notifyObservers(Key.BELL);
-                }
-                break;
-            case Key.HOME:
-                index = 0;
-                setChanged();
-                notifyObservers();
-                break;
-            case Key.END:
-                index = str.length();
-                setChanged();
-                notifyObservers();
+    public void decrementIndex(){
+        if (index > 0) {
+            index -= 1;
+            setChanged();
+            notifyObservers(Key.BACK);
+        }  else {
+            setChanged();
+            notifyObservers(Key.BELL);
+        }
+    }
+    
+    public void homeIndex(){
+        index=0;
+        setChanged();
+        notifyObservers(Key.HOME);
+    }
+
+    public void endIndex(){
+        index=str.length();
+        setChanged();
+        notifyObservers(Key.END);
+    }
+    public void delete() {
+        if (index > 0) {
+            String cola = str.substring(index);
+            str = str.substring(0, index - 1) + cola;
+            index -= 1;
+            setChanged();
+            notifyObservers(Key.ERASE);
+        } else {
+            setChanged();
+            notifyObservers(Key.BELL);
         }
     }
 
+    public void supress() {
+        if (index < str.length()) {
+            String cola = str.substring(index + 1);
+            str = str.substring(0, index) + cola;
+            setChanged();
+            notifyObservers(Key.SUPR);
+        } else {
+            setChanged();
+            notifyObservers(Key.BELL);
+        }
+    }
     public int getIndex() {
         return index;
-    }
-    public String getString(){
-        return str;
     }
 
     public String toString() {
