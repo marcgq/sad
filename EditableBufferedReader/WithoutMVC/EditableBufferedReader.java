@@ -6,7 +6,6 @@ public class EditableBufferedReader extends BufferedReader {
     
     public EditableBufferedReader(Reader in) throws IOException {
         super(in);
-
     }
 
     public void setRaw() throws IOException {
@@ -32,17 +31,11 @@ public class EditableBufferedReader extends BufferedReader {
                 case 'D': // Left arrow
                     return (Key.BACK);
                 case '1': // Home
-                    super.read(); //Flush wave hyphen
-                    return (Key.HOME);
-                case '2':
-                    super.read(); //Flush wave hyphen
-                    return (Key.INS);
+                case '2': // Insert
                 case '3': // Delete
-                    super.read(); //Flush wave hyphen
-                    return (Key.SUPR);
                 case '4': // End
                     super.read(); //Flush wave hyphen
-                    return (Key.END);
+                    return (Key.HOME + key - '1');
                 default:
                     return (Key.BELL);
             }
@@ -51,37 +44,45 @@ public class EditableBufferedReader extends BufferedReader {
 
     @Override
     public String readLine() throws IOException {
-        Line line = new Line();
-        boolean insertMode = true;
+        Line line = new Line(); 
         int key = 0;
+        setRaw();
         while (key != Key.CR) {
-            setRaw();
             switch (key = read()) {
                 case Key.BACK:
+                    if(line.decrementIndex()) System.out.print("\033[1D");
+                    break;
                 case Key.FORW:
+                    if(line.incrementIndex()) System.out.print("\033[1C");
+                    break;
                 case Key.HOME:
+                    line.homeIndex();
+                    System.out.print("\033[1G");
+                    break;
                 case Key.END:
-                    line.modifyIndex(key);
+                    line.endIndex();
                     System.out.print("\033[" + (line.getIndex() + 1) + "G");
                     break;
                 case Key.INS:
-                    insertMode = !insertMode;
+                    line.insertMode = !line.insertMode;
                     break;
                 case Key.ERASE:
+                    line.delete();
+                    System.out.print("\033[1D" + "\033[1P"); // Cursor backwards, delete character
+                    break;
                 case Key.SUPR:
-                    line.delete(key);
-                    System.out.print("\033[2K" + "\033[1G" + line + "\033[" + (line.getIndex()+1) + "G"); // Erase line, cursor at begg., print line, place cursor
+                    line.supress();
+                    System.out.print("\033[1P"); // Delete character
                     break;
                 case Key.BELL:
                     System.out.print("\077"); //Ring bell
                 case Key.CR: // Carriage return
                     break;
                 default:
-                    line.insert((char) key, insertMode);
-                    System.out.print("\033[2K" + "\033[1G" + line + "\033[" + (line.getIndex()+1) + "G"); // Erase line, cursor at begg., print line, place cursor
+                    System.out.print("\033[0K" + line.insert((char) key, line.insertMode) + "\033[" + (line.getIndex()+1) + "G"); // Erase to right, print line from index, place cursor
             }
         }
         unsetRaw();
-        return line.getString();
+        return line.toString();
     }
 }
