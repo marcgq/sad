@@ -5,7 +5,7 @@ import java.io.Reader;
 
 public class EditableBufferedReader extends BufferedReader {
     Console console;
-    int mouseX, mouseY, row;
+    int mouseX, mouseY;
 
     public EditableBufferedReader(Reader in) throws IOException {
         super(in);
