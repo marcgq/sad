@@ -39,10 +39,9 @@ public class EditableBufferedReader extends BufferedReader {
                         mouseX = Integer.parseInt(new String(Integer.toString(super.read()).getBytes("UTF-8"),"ISO-8859-1"))-32;
                         mouseY = Integer.parseInt(new String(Integer.toString(super.read()).getBytes("UTF-8"),"ISO-8859-1"))-32;
                         return(Key.MOUSE);
-                    } else {
-                        super.read(); //Discard 2 following bytes
-                        super.read();
-                    }
+                    } 
+                    super.read(); //Discard 2 following bytes
+                    super.read();
                     return(Key.BELL);
                 case '1': // Home
                 case '2': // Insert
