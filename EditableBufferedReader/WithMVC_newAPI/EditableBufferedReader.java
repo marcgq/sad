@@ -58,11 +58,9 @@ public class EditableBufferedReader extends BufferedReader {
                     break;
                 case Key.HOME:
                     line.homeIndex();
-                    System.out.print("\033[1G");
                     break;
                 case Key.END:
                     line.endIndex();
-                    System.out.print("\033[" + (line.getIndex() + 1) + "G");
                     break;
                 case Key.INS:
                     line.insertMode = !line.insertMode;
