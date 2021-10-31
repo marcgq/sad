@@ -41,4 +41,13 @@ public class MySocket extends Socket {
         }
         return null;
     }
+
+    @Override
+    public void shutdownInput(){
+        try {
+            super.shutdownInput();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
