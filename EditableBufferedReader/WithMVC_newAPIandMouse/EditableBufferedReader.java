@@ -45,7 +45,7 @@ public class EditableBufferedReader extends BufferedReader {
                 case '2': // Insert
                 case '3': // Delete
                 case '4': // End
-                    super.read(); //Flush wave hyphen
+                    super.read();  //Flush wave hyphen
                     return (Key.HOME + key - '1');
                 default:
                     return (Key.BELL);
