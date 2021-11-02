@@ -21,11 +21,9 @@ public class EditableBufferedReader extends BufferedReader {
 
     @Override
     public int read() throws IOException {
-        int key = super.read();
-        if (key != Key.ESCAPE && key != Key.BACKSPACE) {
+        /* int key = super.read();
+        if (key != Key.ESCAPE) {
             return key;
-        } else if (key == Key.BACKSPACE) { 
-            return Key.ERASE;
         } else {
             if(super.read()!='[') return (Key.BELL);
             switch (key=super.read()) {
@@ -52,7 +50,26 @@ public class EditableBufferedReader extends BufferedReader {
                 default:
                     return (Key.BELL);
             }
+        } */
+        if (match("\033[C")) return Key.FORW;
+        if (match("\033[D")) return Key.BACK;
+        if (match("\033[M")) {
+            int button = super.read();
+            if((button & 0b1000011) == 0){ //Check MB1 was pressed
+                mouseX = Integer.parseInt(new String(Integer.toString(super.read()).getBytes("UTF-8"),"ISO-8859-1"))-32;
+                mouseY = Integer.parseInt(new String(Integer.toString(super.read()).getBytes("UTF-8"),"ISO-8859-1"))-32;
+                return(Key.MOUSE);
+            } 
+            super.read(); //Discard 2 following bytes
+            super.read();
+            return(Key.BELL);
         }
+        if (match("\033[1~")) return Key.HOME;
+        if (match("\033[2~")) return Key.INS;
+        if (match("\033[3~")) return Key.SUPR;
+        if (match("\033[4~")) return Key.END;
+        if (match("\033[")) return Key.BELL;
+        return super.read();
     }
 
     @Override
@@ -112,5 +129,19 @@ public class EditableBufferedReader extends BufferedReader {
             b.append((char) ch);
         }
         return b.toString();
+    }
+
+    private boolean match(String s) throws IOException{
+        char[] exp = s.toCharArray();
+        mark(10);
+        int key;
+        for(int i = 0; i<s.length(); i++){
+            key = super.read();
+            if (key != exp[i]) {
+                reset();
+                return false;
+            }
+        }
+        return true;
     }
 }
