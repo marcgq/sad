@@ -133,7 +133,7 @@ public class EditableBufferedReader extends BufferedReader {
 
     private boolean match(String s) throws IOException{
         char[] exp = s.toCharArray();
-        mark(10);
+        mark(s.length());
         int key;
         for(int i = 0; i<s.length(); i++){
             key = super.read();
