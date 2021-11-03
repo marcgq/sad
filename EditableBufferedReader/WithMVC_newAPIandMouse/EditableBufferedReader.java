@@ -136,7 +136,7 @@ public class EditableBufferedReader extends BufferedReader {
         int key;
         for(int i = 0; i<s.length(); i++){
             key = super.read();
-            if (!ready() && key != s.charAt(i)) {
+            if (key == -1 || key != s.charAt(i)) {
                 reset();
                 return false;
             }
