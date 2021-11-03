@@ -132,16 +132,15 @@ public class EditableBufferedReader extends BufferedReader {
     }
 
     private boolean match(String s) throws IOException{
-        char[] exp = s.toCharArray();
         mark(s.length());
         int key;
         for(int i = 0; i<s.length(); i++){
             key = super.read();
-            if (key != exp[i]) {
+            if (!ready() && key != s.charAt(i)) {
                 reset();
                 return false;
             }
         }
         return true;
-    }
+    }        
 }
