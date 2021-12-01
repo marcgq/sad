@@ -12,5 +12,4 @@ struct Message: Identifiable{
     let message: String // 5
     let date = Date()
     let isMine: Bool
-    
 }

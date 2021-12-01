@@ -46,7 +46,7 @@ struct SettingsScreen: View {
             }
         }
         .navigationBarHidden(true)
-        .navigationTitle("Unjoin")
+        .navigationTitle("Login Screen")
         .textFieldStyle(.roundedBorder)
     }
 }

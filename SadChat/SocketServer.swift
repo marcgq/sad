@@ -85,8 +85,8 @@ extension SocketServer: StreamDelegate{
                 closeNetworkConnection()
             }else if s == "Username already taken"{
                 self.delegate?.usernameTaken()
-            }else if let s = s{
-                 self.delegate?.socketDataReceived(result: s)
+            }else if s != ""{
+                self.delegate?.socketDataReceived(result: s!)
             }
         case .openCompleted:
             isOpen = true
@@ -112,29 +112,30 @@ extension SocketServer: StreamDelegate{
         }
         return buffer
     }
+    
     private func readLine(stream: InputStream) -> String?{
             let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 1)
-            var line = String()
-            var tmp = Data()
-           // var s = String()
+            var lineBytes = Data()
+            var byteRead = Data()
             while (stream.hasBytesAvailable) {
                 self.inputStream.read(buffer, maxLength: 1)
-                var s = String(data: Data(bytes:buffer, count: 1), encoding: .utf8)
-                if s==nil{
-                    s = String(data: tmp+Data(bytes:buffer, count: 1), encoding: .utf8)
-                    tmp=tmp + Data(bytes:buffer, count: 1)
-                    if s != nil {
-                        line.append(s!)
-                        tmp=Data()
-                    }
-                } else if s=="\n" {
+                byteRead = Data(bytes:buffer, count: 1)
+                if Character(UnicodeScalar(byteRead[0])).isNewline{
                     break
-                } else if s != nil{
-                    line.append(String(data: Data(bytes:buffer, count: 1), encoding: .utf8)!)
-                    tmp=Data()
+                } else if byteRead[0]|0b01111111 == 0b01111111{
+                    lineBytes += byteRead
+                } else if byteRead[0]|0b00011111 == 0b11011111{
+                    self.inputStream.read(buffer, maxLength: 1)
+                    lineBytes += byteRead + Data(bytes:buffer, count: 1)
+                } else if byteRead[0]|0b00001111 == 0b11101111{
+                    self.inputStream.read(buffer, maxLength: 2)
+                    lineBytes += byteRead + Data(bytes:buffer, count: 2)
+                } else if byteRead[0]|0b00000111 == 0b11110111{
+                    self.inputStream.read(buffer, maxLength: 3)
+                    lineBytes += byteRead + Data(bytes:buffer, count: 3)
                 }
             }
-        return line
+        return String(data: lineBytes, encoding: .utf8)
     }
     
     

@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 struct ChatScreen: View {
-    @StateObject private var model = ChatStore()
+    @StateObject private var store = ChatStore()
     @State private var myMessage = ""
     @EnvironmentObject private var userInfo: UserInfo
     @Environment(\.presentationMode) var mode: Binding<PresentationMode>
@@ -18,21 +18,21 @@ struct ChatScreen: View {
     
     private func onAppear(){
         DispatchQueue.main.async{
-            model.connect(username: userInfo.username)
+            store.connect(username: userInfo.username)
         }
     }
     private func onDisappear(){
-        model.disconnect()
+        store.disconnect()
     }
     private func onCommit(){
         if !myMessage.isEmpty {
-            model.send(text: myMessage)
+            store.send(text: myMessage)
             myMessage=""
         }
         
     }
     private func scrollToLastMessage(proxy: ScrollViewProxy) {
-        if let lastMessage = model.messages.last { // 4
+        if let lastMessage = store.messages.last { // 4
             withAnimation(.easeOut(duration: 0.4)) {
                 proxy.scrollTo(lastMessage.id, anchor: .bottom) // 5
             }
@@ -44,12 +44,12 @@ struct ChatScreen: View {
             ScrollView {
                 ScrollViewReader { proxy in // 1
                     LazyVStack(spacing: 8) {
-                        ForEach(model.messages) { message in
+                        ForEach(store.messages) { message in
                             ChatMessageRow(message: message, isUser: message.isMine).id(message.id)
                             
                         }
                     }
-                    .onChange(of: model.messages.count) { _ in // 3
+                    .onChange(of: store.messages.count) { _ in // 3
                         scrollToLastMessage(proxy: proxy)
                     }
                     
@@ -72,10 +72,10 @@ struct ChatScreen: View {
             }
             .padding()
         }
-        .alert("Nickname \"" + userInfo.username + "\" is already in use", isPresented: $model.usernameInUse) {
+        .alert("Nickname \"" + userInfo.username + "\" is already in use", isPresented: $store.usernameInUse) {
             Button("OK", role: .cancel) {
                 self.mode.wrappedValue.dismiss()
-                model.disconnect()
+                store.disconnect()
             }
         } message: {
             Text("Please try joining with a different nickname")
@@ -83,7 +83,7 @@ struct ChatScreen: View {
         .navigationBarBackButtonHidden(true)
         .navigationBarItems(leading: Button(action : {
             self.mode.wrappedValue.dismiss()
-            model.disconnect()
+            store.disconnect()
         }){
             Image(systemName: "arrow.left")
             Text("Leave chat")

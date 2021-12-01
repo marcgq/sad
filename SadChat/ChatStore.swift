@@ -15,7 +15,6 @@ final class ChatStore: ObservableObject, SocketDelegate {
     private var username = ""
     private var socket = SocketServer() // 1
     
-    
     func addMessage(message: Message){
         messages.append(message)
     }
@@ -31,7 +30,6 @@ final class ChatStore: ObservableObject, SocketDelegate {
         usernameInUse = true;
     }
     
-    
     // MARK: - Connection
     func connect(username: String){ // 2
         self.username = username
@@ -40,15 +38,13 @@ final class ChatStore: ObservableObject, SocketDelegate {
         socket.connect()
         socket.writeToOutputStream(string: self.username+"\n")
     }
-
+    
     
     func send(text: String) {
         socket.writeToOutputStream(string: text+"\n")
         let m: Message = Message(nick: username, message: text, isMine: true)
         addMessage(message: m)
-       
     }
-
     
     func disconnect(){
         socket.closeNetworkConnection()
