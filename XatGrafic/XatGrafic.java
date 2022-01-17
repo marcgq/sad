@@ -93,8 +93,6 @@ public class XatGrafic implements ActionListener {
     }
 
     public static void main(String[] args) throws UnknownHostException, IOException{
-        //Schedule a job for the event-dispatching thread:
-        //creating and showing this application's GUI.
         sc = new MySocket(args[0], Integer.parseInt(args[1]));
         sc.println(args[2]);
         
